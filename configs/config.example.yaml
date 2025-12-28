@@ -1,0 +1,27 @@
+# Proxmox Configuration
+proxmox:
+  host: "192.168.0.X"
+  port: 8005
+  token: "username@pam!token-name=your-token"
+  node: "pve"
+  verify_ssl: false
+
+# VM Configuration
+vms:
+  - name: "machine-01"
+    id: 100
+    host: "192.168.0.Y"
+    ssh_user: "username"
+    ssh_key: "~/.ssh/homelab_key"
+  - name: "machine-02"
+    id: 101
+    host: "192.168.0.Z"
+    ssh_user: "username"
+    ssh_key: "~/.ssh/homelab_key"
+
+# Refresh Intervals (seconds)
+refresh:
+  node_stats: 10
+  vm_stats: 10
+  containers: 30
+  github_releases: 3600
