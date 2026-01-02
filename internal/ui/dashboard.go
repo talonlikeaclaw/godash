@@ -25,3 +25,22 @@ func NewModel() Model {
 		cursor:     0,
 	}
 }
+
+// Init is called once at startup
+func (m Model) Init() tea.Cmd {
+	return nil
+}
+
+// Update handles all state changes
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "q":
+			m.quitting = true
+			return m, tea.Quit
+		}
+	}
+
+	return m, nil
+}
