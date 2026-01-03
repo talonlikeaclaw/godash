@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/talonlikeaclaw/godash/internal/models"
@@ -39,6 +40,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			m.quitting = true
 			return m, tea.Quit
+
+		case "up", "k":
+			// Move cursor up
+			if m.cursor > 0 {
+				m.cursor--
+			}
+
+		case "down", "j":
+			// Move cursor down
+			if m.cursor < len(m.vms)-1 {
+				m.cursor++
+			}
 		}
 	}
 
@@ -51,21 +64,37 @@ func (m Model) View() string {
 		return "Goodbye!\n"
 	}
 
-	s := "Godash - Homelab Dashboard\n\n"
+	var b strings.Builder
+
+	b.WriteString("Godash - Homelab Dashboard\n\n")
 
 	// Node info
-	s += fmt.Sprintf("Node: %s (%s)\n", m.node.Name, m.node.Status)
-	s += fmt.Sprintf("CPU: %.1f%% | Memory: %dGB / %dGB\n\n",
+	fmt.Fprintf(&b, "Node: %s (%s)\n", m.node.Name, m.node.Status)
+	fmt.Fprintf(&b, "CPU: %.1f%% | Memory: %dGB / %dGB\n\n",
 		m.node.CPU,
 		m.node.MemUsed/(1024*1024*1024),
 		m.node.MemTotal/(1024*1024*1024))
 
-	// VM list
-	s += "Virtual Machines:\n"
-	for _, vm := range m.vms {
-		s += fmt.Sprintf("  [%d] %s - %s\n", vm.ID, vm.Name, vm.Status)
+	// VM list with cursor
+	b.WriteString("Virtual Machines:\n")
+	for i, vm := range m.vms {
+		// Cursor indicator
+		cursor := " "
+		if m.cursor == i {
+			cursor = ">"
+		}
+
+		fmt.Fprintf(&b, "%s [%d] %s - %s (CPU: %.1f%%, Mem: %dGB/%dGB)\n",
+			cursor,
+			vm.ID,
+			vm.Name,
+			vm.Status,
+			vm.CPU,
+			vm.MemUsed/(1024*1024*1024),
+			vm.MemTotal/(1024*1024*1024))
 	}
 
-	s += "\nPress q to quit.\n"
-	return s
+	b.WriteString("\nControls: ↑/↓ or j/k to navigate | q to quit\n")
+
+	return b.String()
 }
