@@ -70,10 +70,10 @@ func (m Model) View() string {
 
 	// Node info
 	fmt.Fprintf(&b, "Node: %s (%s)\n", m.node.Name, m.node.Status)
-	fmt.Fprintf(&b, "CPU: %.1f%% | Memory: %dGB / %dGB\n\n",
+	fmt.Fprintf(&b, "CPU: %.1f%% | Memory: %.1fGB / %.1fGB\n\n",
 		m.node.CPU,
-		m.node.MemUsed/(1024*1024*1024),
-		m.node.MemTotal/(1024*1024*1024))
+		models.BytesToGB(m.node.MemUsed),
+		models.BytesToGB(m.node.MemTotal))
 
 	// VM list with cursor
 	b.WriteString("Virtual Machines:\n")
@@ -84,14 +84,14 @@ func (m Model) View() string {
 			cursor = ">"
 		}
 
-		fmt.Fprintf(&b, "%s [%d] %s - %s (CPU: %.1f%%, Mem: %dGB/%dGB)\n",
+		fmt.Fprintf(&b, "%s [%d] %s - %s (CPU: %.1f%%, Mem: %.1fGB/%.1fGB)\n",
 			cursor,
 			vm.ID,
 			vm.Name,
 			vm.Status,
 			vm.CPU,
-			vm.MemUsed/(1024*1024*1024),
-			vm.MemTotal/(1024*1024*1024))
+			models.BytesToGB(vm.MemUsed),
+			models.BytesToGB(vm.MemTotal))
 	}
 
 	b.WriteString("\nControls: ↑/↓ or j/k to navigate | q to quit\n")

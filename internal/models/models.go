@@ -31,3 +31,8 @@ type Container struct {
 	MemTotal int64
 	Uptime   int64
 }
+
+// Converts bytes to gigabytes with decimal precision
+func BytesToGB(numBytes int64) float64 {
+	return float64(numBytes) / (1024 * 1024 * 1024)
+}
