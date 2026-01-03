@@ -3,10 +3,17 @@ package main
 import (
 	"fmt"
 	"os"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/talonlikeaclaw/godash/internal/ui"
 )
 
 func main() {
-	fmt.Println("Godash - Homelab TUI Dashboard")
-	fmt.Println("Version: 0.1.0-dev")
-	os.Exit(0)
+	m := ui.NewModel()
+	p := tea.NewProgram(m)
+
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Error: %v\n", err)
+		os.Exit(1)
+	}
 }
