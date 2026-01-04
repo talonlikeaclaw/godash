@@ -43,15 +43,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "up", "k":
 			// Move cursor up
-			if m.cursor > 0 {
-				m.cursor--
-			}
+			m.cursor = (m.cursor - 1 + len(m.vms)) % len(m.vms)
 
 		case "down", "j":
 			// Move cursor down
-			if m.cursor < len(m.vms)-1 {
-				m.cursor++
-			}
+			m.cursor = (m.cursor + 1) % len(m.vms)
 		}
 	}
 
