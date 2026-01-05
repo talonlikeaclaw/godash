@@ -42,14 +42,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "up", "k":
-			// Move cursor up
 			totalItems := len(m.vms) + len(m.containers)
-			m.cursor = (m.cursor - 1 + totalItems) % totalItems
+			if totalItems > 0 {
+				// Move cursor up
+				m.cursor = (m.cursor - 1 + totalItems) % totalItems
+			}
 
 		case "down", "j":
-			// Move cursor down
 			totalItems := len(m.vms) + len(m.containers)
-			m.cursor = (m.cursor + 1) % totalItems
+			if totalItems > 0 {
+				// Move cursor down
+				m.cursor = (m.cursor + 1) % totalItems
+			}
 		}
 	}
 
