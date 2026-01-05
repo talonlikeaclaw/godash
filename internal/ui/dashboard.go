@@ -116,6 +116,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// getStatusStyle returns the appropriate style for a VM/container status
+func getStatusStyle(status string) lipgloss.Style {
+	if status == "running" {
+		return runningStatusStyle
+	}
+	return stoppedStatusStyle
+}
+
+// getNodeStatusStyle returns the appropriate style for a node status
+func getNodeStatusStyle(status string) lipgloss.Style {
+	if status == "online" {
+		return runningStatusStyle
+	}
+	return stoppedStatusStyle
+}
+
 // View renders the UI
 func (m Model) View() string {
 	if m.quitting {
