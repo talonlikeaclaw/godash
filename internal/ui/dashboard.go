@@ -43,15 +43,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "up", "k":
 			// Move cursor up
-			if m.cursor > 0 {
-				m.cursor--
-			}
+			totalItems := len(m.vms) + len(m.containers)
+			m.cursor = (m.cursor - 1 + totalItems) % totalItems
 
 		case "down", "j":
 			// Move cursor down
-			if m.cursor < len(m.vms)-1 {
-				m.cursor++
-			}
+			totalItems := len(m.vms) + len(m.containers)
+			m.cursor = (m.cursor + 1) % totalItems
 		}
 	}
 
@@ -70,10 +68,10 @@ func (m Model) View() string {
 
 	// Node info
 	fmt.Fprintf(&b, "Node: %s (%s)\n", m.node.Name, m.node.Status)
-	fmt.Fprintf(&b, "CPU: %.1f%% | Memory: %dGB / %dGB\n\n",
+	fmt.Fprintf(&b, "CPU: %.1f%% | Memory: %.1fGB / %.1fGB\n\n",
 		m.node.CPU,
-		m.node.MemUsed/(1024*1024*1024),
-		m.node.MemTotal/(1024*1024*1024))
+		models.BytesToGB(m.node.MemUsed),
+		models.BytesToGB(m.node.MemTotal))
 
 	// VM list with cursor
 	b.WriteString("Virtual Machines:\n")
@@ -84,14 +82,33 @@ func (m Model) View() string {
 			cursor = ">"
 		}
 
-		fmt.Fprintf(&b, "%s [%d] %s - %s (CPU: %.1f%%, Mem: %dGB/%dGB)\n",
+		fmt.Fprintf(&b, "%s [%d] %s - %s (CPU: %.1f%%, Mem: %.1fGB/%.1fGB)\n",
 			cursor,
 			vm.ID,
 			vm.Name,
 			vm.Status,
 			vm.CPU,
-			vm.MemUsed/(1024*1024*1024),
-			vm.MemTotal/(1024*1024*1024))
+			models.BytesToGB(vm.MemUsed),
+			models.BytesToGB(vm.MemTotal))
+	}
+
+	// Container list with cursor
+	b.WriteString("\nLXC Containers:\n")
+	for i, container := range m.containers {
+		// Cursor indicator
+		cursor := " "
+		if m.cursor == i+len(m.vms) {
+			cursor = ">"
+		}
+
+		fmt.Fprintf(&b, "%s [%d] %s - %s (CPU: %.1f%%, Mem: %.1fGB/%.1fGB)\n",
+			cursor,
+			container.ID,
+			container.Name,
+			container.Status,
+			container.CPU,
+			models.BytesToGB(container.MemUsed),
+			models.BytesToGB(container.MemTotal))
 	}
 
 	b.WriteString("\nControls: ↑/↓ or j/k to navigate | q to quit\n")
