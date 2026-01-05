@@ -13,7 +13,7 @@ type Model struct {
 	node       models.Node
 	vms        []models.VM
 	containers []models.Container
-	cursor     int // which VM is selected
+	cursor     int // which VM or container is selected
 	quitting   bool
 }
 
@@ -68,10 +68,12 @@ func (m Model) View() string {
 
 	// Node info
 	fmt.Fprintf(&b, "Node: %s (%s)\n", m.node.Name, m.node.Status)
-	fmt.Fprintf(&b, "CPU: %.1f%% | Memory: %.1fGB / %.1fGB\n\n",
+	fmt.Fprintf(&b, "CPU: %.1f%% | Memory: %.0fGB / %.0fGB | Disk: %.0fGB / %.0fGB\n\n",
 		m.node.CPU,
 		models.BytesToGB(m.node.MemUsed),
-		models.BytesToGB(m.node.MemTotal))
+		models.BytesToGB(m.node.MemTotal),
+		models.BytesToGB(m.node.DiskUsed),
+		models.BytesToGB(m.node.DiskTotal))
 
 	// VM list with cursor
 	b.WriteString("Virtual Machines:\n")
