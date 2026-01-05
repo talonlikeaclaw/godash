@@ -140,11 +140,19 @@ func (m Model) View() string {
 
 	var b strings.Builder
 
-	b.WriteString("Godash - Homelab Dashboard\n\n")
+	// Title
+	b.WriteString(titleStyle.Render("Godash - Homelab Dashboard"))
+	b.WriteString("\n\n")
 
-	// Node info
-	fmt.Fprintf(&b, "Node: %s (%s)\n", m.node.Name, m.node.Status)
-	fmt.Fprintf(&b, "CPU: %.1f%% | Memory: %.0fGB / %.0fGB | Disk: %.0fGB / %.0fGB\n\n",
+	// Build content for the box
+	var boxContent strings.Builder
+
+	// Node info with styling
+	nodeLabel := nodeHeaderStyle.Render("Node:")
+	nodeName := nodeHeaderStyle.Render(m.node.Name)
+	nodeStatus := getNodeStatusStyle(m.node.Status).Render(m.node.Status)
+	fmt.Fprintf(&boxContent, "%s %s (%s)\n", nodeLabel, nodeName, nodeStatus)
+	fmt.Fprintf(&boxContent, "CPU: %.1f%% | Memory: %.0fGB/%.0fGB | Disk: %.0fGB/%.0fGB\n\n",
 		m.node.CPU,
 		models.BytesToGB(m.node.MemUsed),
 		models.BytesToGB(m.node.MemTotal),
@@ -152,44 +160,71 @@ func (m Model) View() string {
 		models.BytesToGB(m.node.DiskTotal))
 
 	// VM list with cursor
-	b.WriteString("Virtual Machines:\n")
+	boxContent.WriteString(sectionHeaderStyle.Render("Virtual Machines"))
+	boxContent.WriteString("\n")
 	for i, vm := range m.vms {
-		// Cursor indicator
-		cursor := " "
-		if m.cursor == i {
-			cursor = ">"
-		}
-
-		fmt.Fprintf(&b, "%s [%d] %s - %s (CPU: %.1f%%, Mem: %.1fGB/%.1fGB)\n",
-			cursor,
+		// Build the line content
+		line := fmt.Sprintf(" [%d] %s - %s (CPU: %.1f%%, Mem: %.1fGB/%.1fGB)",
 			vm.ID,
 			vm.Name,
 			vm.Status,
 			vm.CPU,
 			models.BytesToGB(vm.MemUsed),
 			models.BytesToGB(vm.MemTotal))
+
+		// Apply highlighting if selected
+		if m.cursor == i {
+			boxContent.WriteString(selectedItemStyle.Render(line))
+		} else {
+			// Color the status
+			lineParts := fmt.Sprintf(" [%d] %s - ", vm.ID, vm.Name)
+			statusStyled := getStatusStyle(vm.Status).Render(vm.Status)
+			remaining := fmt.Sprintf(" (CPU: %.1f%%, Mem: %.1fGB/%.1fGB)",
+				vm.CPU,
+				models.BytesToGB(vm.MemUsed),
+				models.BytesToGB(vm.MemTotal))
+			boxContent.WriteString(lineParts + statusStyled + remaining)
+		}
+		boxContent.WriteString("\n")
 	}
 
 	// Container list with cursor
-	b.WriteString("\nLXC Containers:\n")
+	boxContent.WriteString("\n")
+	boxContent.WriteString(sectionHeaderStyle.Render("LXC Containers"))
+	boxContent.WriteString("\n")
 	for i, container := range m.containers {
-		// Cursor indicator
-		cursor := " "
-		if m.cursor == i+len(m.vms) {
-			cursor = ">"
-		}
-
-		fmt.Fprintf(&b, "%s [%d] %s - %s (CPU: %.1f%%, Mem: %.1fGB/%.1fGB)\n",
-			cursor,
+		// Build the line content
+		line := fmt.Sprintf(" [%d] %s - %s (CPU: %.1f%%, Mem: %.1fGB/%.1fGB)",
 			container.ID,
 			container.Name,
 			container.Status,
 			container.CPU,
 			models.BytesToGB(container.MemUsed),
 			models.BytesToGB(container.MemTotal))
+
+		// Apply highlighting if selected
+		if m.cursor == i+len(m.vms) {
+			boxContent.WriteString(selectedItemStyle.Render(line))
+		} else {
+			// Color the status
+			lineParts := fmt.Sprintf(" [%d] %s - ", container.ID, container.Name)
+			statusStyled := getStatusStyle(container.Status).Render(container.Status)
+			remaining := fmt.Sprintf(" (CPU: %.1f%%, Mem: %.1fGB/%.1fGB)",
+				container.CPU,
+				models.BytesToGB(container.MemUsed),
+				models.BytesToGB(container.MemTotal))
+			boxContent.WriteString(lineParts + statusStyled + remaining)
+		}
+		boxContent.WriteString("\n")
 	}
 
-	b.WriteString("\nControls: ↑/↓ or j/k to navigate | q to quit\n")
+	// Wrap everything in the box
+	b.WriteString(nodeBoxStyle.Render(boxContent.String()))
+	b.WriteString("\n")
+
+	// Help text (outside the box)
+	b.WriteString(helpStyle.Render("Controls: ↑/↓ or j/k to navigate | q to quit"))
+	b.WriteString("\n")
 
 	return b.String()
 }
