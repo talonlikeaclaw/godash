@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/talonlikeaclaw/godash/internal/models"
 )
 
@@ -26,6 +27,61 @@ func NewModel() Model {
 		cursor:     0,
 	}
 }
+
+var (
+	// Tokyo Night color palette
+	tokyoNightPurple = lipgloss.Color("#bb9af7")
+	tokyoNightBlue   = lipgloss.Color("#7aa2f7")
+	tokyoNightCyan   = lipgloss.Color("#7dcfff")
+	tokyoNightGreen  = lipgloss.Color("#9ece6a")
+	tokyoNightYellow = lipgloss.Color("#e0af68")
+	tokyoNightRed    = lipgloss.Color("#f7768e")
+	tokyoNightGray   = lipgloss.Color("#565f89")
+
+	// Title styling
+	titleStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(tokyoNightPurple).
+			Underline(true)
+
+	// Node header style
+	nodeHeaderStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(tokyoNightYellow)
+
+	// Section headers
+	sectionHeaderStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(tokyoNightBlue).
+				MarginTop(1)
+
+	// Node info box
+	nodeBoxStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(tokyoNightPurple).
+			Padding(0, 1).
+			MarginBottom(1)
+
+	// Selected item highlight
+	selectedItemStyle = lipgloss.NewStyle().
+				Background(tokyoNightCyan).
+				Foreground(lipgloss.Color("#1a1b26")).
+				Bold(true)
+
+	// Status colors
+	runningStatusStyle = lipgloss.NewStyle().
+				Foreground(tokyoNightGreen).
+				Bold(true)
+
+	stoppedStatusStyle = lipgloss.NewStyle().
+				Foreground(tokyoNightRed).
+				Bold(true)
+
+	// Help text
+	helpStyle = lipgloss.NewStyle().
+			Foreground(tokyoNightGray).
+			MarginTop(1)
+)
 
 // Init is called once at startup
 func (m Model) Init() tea.Cmd {
