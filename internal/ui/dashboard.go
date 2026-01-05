@@ -77,6 +77,16 @@ var (
 				Foreground(tokyoNightRed).
 				Bold(true)
 
+	// Usage level colors (for CPU/Memory)
+	normalUsageStyle = lipgloss.NewStyle().
+				Foreground(tokyoNightGreen)
+
+	warningUsageStyle = lipgloss.NewStyle().
+				Foreground(tokyoNightYellow)
+
+	criticalUsageStyle = lipgloss.NewStyle().
+				Foreground(tokyoNightRed)
+
 	// Help text
 	helpStyle = lipgloss.NewStyle().
 			Foreground(tokyoNightGray).
