@@ -5,11 +5,11 @@ func GetFakeNode() Node {
 	return Node{
 		Name:      "node-01",
 		Status:    "online",
-		CPU:       12.5,
+		CPU:       67.5,                      // Warning level (60-80%)
 		CPUCores:  16,
-		MemUsed:   48 * 1024 * 1024 * 1024,   // 48GB
+		MemUsed:   95 * 1024 * 1024 * 1024,   // 95GB (~74% - warning)
 		MemTotal:  128 * 1024 * 1024 * 1024,  // 128GB
-		DiskUsed:  250 * 1024 * 1024 * 1024,  // 250GB
+		DiskUsed:  900 * 1024 * 1024 * 1024,  // 900GB (~88% - critical)
 		DiskTotal: 1024 * 1024 * 1024 * 1024, // 1TB
 		Uptime:    2592000,                   // 30 days in seconds
 	}
@@ -22,8 +22,8 @@ func GetFakeVMs() []VM {
 			ID:       100,
 			Name:     "web-server",
 			Status:   "running",
-			CPU:      2.5,
-			MemUsed:  4 * 1024 * 1024 * 1024, // 4GB
+			CPU:      85.3,                   // Critical level (80%+)
+			MemUsed:  4 * 1024 * 1024 * 1024, // 4GB (50% - normal)
 			MemTotal: 8 * 1024 * 1024 * 1024, // 8GB
 			Uptime:   1296000,                // 15 days
 		},
@@ -31,10 +31,10 @@ func GetFakeVMs() []VM {
 			ID:       101,
 			Name:     "database-server",
 			Status:   "running",
-			CPU:      8.3,
-			MemUsed:  12 * 1024 * 1024 * 1024, // 12GB
-			MemTotal: 16 * 1024 * 1024 * 1024, // 16GB
-			Uptime:   1296000,                 // 15 days
+			CPU:      45.8,                     // Normal level
+			MemUsed:  14 * 1024 * 1024 * 1024,  // 14GB (87.5% - critical)
+			MemTotal: 16 * 1024 * 1024 * 1024,  // 16GB
+			Uptime:   1296000,                  // 15 days
 		},
 		{
 			ID:       102,
@@ -55,17 +55,17 @@ func GetFakeContainers() []Container {
 			ID:       200,
 			Name:     "reverse-proxy",
 			Status:   "running",
-			CPU:      0.5,
-			MemUsed:  128 * 1024 * 1024, // 128MB
-			MemTotal: 512 * 1024 * 1024, // 512MB
-			Uptime:   2592000,           // 30 days
+			CPU:      72.4,               // Warning level (60-80%)
+			MemUsed:  128 * 1024 * 1024,  // 128MB (25% - normal)
+			MemTotal: 512 * 1024 * 1024,  // 512MB
+			Uptime:   2592000,            // 30 days
 		},
 		{
 			ID:       201,
 			Name:     "monitoring",
 			Status:   "running",
-			CPU:      1.2,
-			MemUsed:  256 * 1024 * 1024,  // 256MB
+			CPU:      15.2,               // Normal level
+			MemUsed:  800 * 1024 * 1024,  // 800MB (78% - warning)
 			MemTotal: 1024 * 1024 * 1024, // 1GB
 			Uptime:   2592000,            // 30 days
 		},
@@ -73,8 +73,8 @@ func GetFakeContainers() []Container {
 			ID:       202,
 			Name:     "vpn-gateway",
 			Status:   "running",
-			CPU:      0.3,
-			MemUsed:  96 * 1024 * 1024,  // 96MB
+			CPU:      3.7,               // Normal level
+			MemUsed:  96 * 1024 * 1024,  // 96MB (18.75% - normal)
 			MemTotal: 512 * 1024 * 1024, // 512MB
 			Uptime:   2592000,           // 30 days
 		},
