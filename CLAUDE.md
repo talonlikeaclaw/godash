@@ -11,6 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Tech Stack:**
 - Go 1.25.5
 - Bubbletea (TUI framework based on Elm Architecture)
+- Lipgloss (styling and layout for terminal UIs)
 - Development in distrobox container (golang:1.25 image)
 - Module path: `github.com/talonlikeaclaw/godash`
 
@@ -107,8 +108,8 @@ The application follows the Elm Architecture pattern via Bubble Tea:
 2. **Init()**: Called once at startup to return initial commands
 
 3. **Update(msg tea.Msg)**: Handles all state changes based on messages:
-   - Keyboard events (currently: q/Ctrl+C to quit)
-   - Future: navigation, data updates, API responses
+   - Keyboard events (q/Ctrl+C to quit, up/down or j/k for navigation)
+   - Future: view switching, data updates, API responses
    - Returns updated model and optional command
 
 4. **View()**: Pure rendering function that returns a string representation of current state
@@ -136,16 +137,17 @@ Future phases will replace these with real Proxmox API calls.
 ## Current State
 
 **What works:**
-- Basic TUI that displays fake node and VM data
+- Dashboard TUI displaying node info (CPU, Memory, Disk usage)
+- VM and LXC container lists with unified cursor navigation
+- Keyboard navigation (up/down or j/k, with wrapping)
 - Quit functionality (press 'q' or Ctrl+C)
 - Project structure and build system
 - Fake data generators for development without Proxmox connection
+- BytesToGB helper for memory/disk display formatting
 
 **What's next (Phase 1 continuation):**
-- Add keyboard navigation (up/down arrows to select VMs)
+- Add styling with lipgloss (in progress)
 - Add multiple views (dashboard → VM detail view)
-- Add styling with lipgloss
-- Add container display to main dashboard
 
 ## Future Phases
 
