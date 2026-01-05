@@ -43,11 +43,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "up", "k":
 			// Move cursor up
-			m.cursor = (m.cursor - 1 + len(m.vms)) % len(m.vms)
+			totalItems := len(m.vms) + len(m.containers)
+			m.cursor = (m.cursor - 1 + totalItems) % totalItems
 
 		case "down", "j":
 			// Move cursor down
-			m.cursor = (m.cursor + 1) % len(m.vms)
+			totalItems := len(m.vms) + len(m.containers)
+			m.cursor = (m.cursor + 1) % totalItems
 		}
 	}
 
@@ -88,6 +90,25 @@ func (m Model) View() string {
 			vm.CPU,
 			models.BytesToGB(vm.MemUsed),
 			models.BytesToGB(vm.MemTotal))
+	}
+
+	// Container list with cursor
+	b.WriteString("\nLXC Containers:\n")
+	for i, container := range m.containers {
+		// Cursor indicator
+		cursor := " "
+		if m.cursor == i+len(m.vms) {
+			cursor = ">"
+		}
+
+		fmt.Fprintf(&b, "%s [%d] %s - %s (CPU: %.1f%%, Mem: %.1fGB/%.1fGB)\n",
+			cursor,
+			container.ID,
+			container.Name,
+			container.Status,
+			container.CPU,
+			models.BytesToGB(container.MemUsed),
+			models.BytesToGB(container.MemTotal))
 	}
 
 	b.WriteString("\nControls: ↑/↓ or j/k to navigate | q to quit\n")
