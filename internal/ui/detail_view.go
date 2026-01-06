@@ -109,7 +109,7 @@ func (m Model) renderDetailView() string {
 		memPercent := (float64(container.MemUsed) / float64(container.MemTotal)) * 100.0
 		memBar := memProg.ViewAs(memPercent / 100.0)
 		memStyled := getMemoryUsageStyle(container.MemUsed, container.MemTotal).Render(fmt.Sprintf("%.1fGB/%.1fGB", memUsed, memTotal))
-		fmt.Fprintf(&detailContent, "Memory: %s %s\n\n", memBar, memStyled)
+		fmt.Fprintf(&detailContent, "Memory: %s %s\n", memBar, memStyled)
 
 		// Wrap in box
 		b.WriteString(nodeBoxStyle.Render(detailContent.String()))
