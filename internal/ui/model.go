@@ -53,7 +53,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "ctrl+c", "esc":
 			m.quitting = true
 			return m, tea.Quit
 
@@ -76,7 +76,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentView = ViewDetail
 			}
 
-		case "esc":
+		case "q":
 			if m.currentView == ViewDetail {
 				m.currentView = ViewDashboard
 			}

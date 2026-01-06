@@ -101,7 +101,7 @@ func (m Model) renderDetailView() string {
 	}
 
 	// Help text
-	b.WriteString(helpStyle.Render("Controls: Esc to go back | q to quit"))
+	b.WriteString(helpStyle.Render("Controls: q to go back | Esc to quit"))
 	b.WriteString("\n")
 
 	return b.String()

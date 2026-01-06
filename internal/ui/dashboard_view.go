@@ -124,7 +124,7 @@ func (m Model) renderDashboardView() string {
 	b.WriteString("\n")
 
 	// Help text (outside the box)
-	b.WriteString(helpStyle.Render("Controls: ↑/↓ or j/k to navigate | Enter to view details | q to quit"))
+	b.WriteString(helpStyle.Render("Controls: ↑/↓ or j/k to navigate | Enter to view details | Esc to quit"))
 	b.WriteString("\n")
 
 	return b.String()
