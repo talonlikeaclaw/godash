@@ -11,20 +11,22 @@ import (
 
 // Model represents the application state
 type Model struct {
-	node       models.Node
-	vms        []models.VM
-	containers []models.Container
-	cursor     int // which VM or container is selected
-	quitting   bool
+	node        models.Node
+	vms         []models.VM
+	containers  []models.Container
+	cursor      int // which VM or container is selected
+	currentView string
+	quitting    bool
 }
 
 // NewModel creates a new model with fake data
 func NewModel() Model {
 	return Model{
-		node:       models.GetFakeNode(),
-		vms:        models.GetFakeVMs(),
-		containers: models.GetFakeContainers(),
-		cursor:     0,
+		node:        models.GetFakeNode(),
+		vms:         models.GetFakeVMs(),
+		containers:  models.GetFakeContainers(),
+		currentView: "dashboard",
+		cursor:      0,
 	}
 }
 
@@ -119,6 +121,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if totalItems > 0 {
 				// Move cursor down
 				m.cursor = (m.cursor + 1) % totalItems
+			}
+
+		case "enter":
+			if m.currentView == "dashboard" {
+				m.currentView = "detail"
+			}
+
+		case "esc":
+			if m.currentView == "detail" {
+				m.currentView = "dashboard"
 			}
 		}
 	}
