@@ -34,7 +34,7 @@ var (
 	// Section headers
 	sectionHeaderStyle = lipgloss.NewStyle().
 				Bold(true).
-				Foreground(tokyoNightBlue).
+				Foreground(tokyoNightCyan).
 				MarginTop(1)
 
 	// Node info box
@@ -46,7 +46,7 @@ var (
 
 	// Selected item highlight
 	selectedItemStyle = lipgloss.NewStyle().
-				Background(tokyoNightCyan).
+				Background(tokyoNightBlue).
 				Foreground(lipgloss.Color("#1a1b26")).
 				Bold(true)
 
