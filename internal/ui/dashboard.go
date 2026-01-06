@@ -111,14 +111,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "up", "k":
 			totalItems := len(m.vms) + len(m.containers)
-			if totalItems > 0 {
+			if totalItems > 0 && m.currentView == "dashboard" {
 				// Move cursor up
 				m.cursor = (m.cursor - 1 + totalItems) % totalItems
 			}
 
 		case "down", "j":
 			totalItems := len(m.vms) + len(m.containers)
-			if totalItems > 0 {
+			if totalItems > 0 && m.currentView == "dashboard" {
 				// Move cursor down
 				m.cursor = (m.cursor + 1) % totalItems
 			}
