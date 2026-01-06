@@ -22,21 +22,29 @@ func (m Model) renderDashboardView() string {
 	nodeLabel := nodeHeaderStyle.Render("Node:")
 	nodeName := nodeHeaderStyle.Render(m.node.Name)
 	nodeStatus := getNodeStatusStyle(m.node.Status).Render(m.node.Status)
-	fmt.Fprintf(&boxContent, "%s %s (%s) | Uptime: %s\n", nodeLabel, nodeName, nodeStatus, models.FormatUptime(m.node.Uptime))
+	fmt.Fprintf(&boxContent, "%s %s (%s) | Uptime: %s\n\n", nodeLabel, nodeName, nodeStatus, models.FormatUptime(m.node.Uptime))
 
-	// Style CPU, Memory, and Disk based on usage
-	cpuStyled := getCPUUsageStyle(m.node.CPU).Render(fmt.Sprintf("%.1f%%", m.node.CPU))
+	// CPU
+	cpuPercent := m.node.CPU / 100.0
+	cpuBar := m.cpuProgress.ViewAs(cpuPercent)
+	cpuValue := getCPUUsageStyle(m.node.CPU).Render(fmt.Sprintf("%.1f%%", m.node.CPU))
+	fmt.Fprintf(&boxContent, "CPU:    %s %s\n", cpuBar, cpuValue)
+
+	// Memory
 	memUsedGB := models.BytesToGB(m.node.MemUsed)
 	memTotalGB := models.BytesToGB(m.node.MemTotal)
-	memStyled := getMemoryUsageStyle(m.node.MemUsed, m.node.MemTotal).Render(fmt.Sprintf("%.0fGB/%.0fGB", memUsedGB, memTotalGB))
+	memPercent := float64(m.node.MemUsed) / float64(m.node.MemTotal)
+	memBar := m.memProgress.ViewAs(memPercent)
+	memValue := getMemoryUsageStyle(m.node.MemUsed, m.node.MemTotal).Render(fmt.Sprintf("%.0fGB/%.0fGB", memUsedGB, memTotalGB))
+	fmt.Fprintf(&boxContent, "Memory: %s %s\n", memBar, memValue)
+
+	// Disk
 	diskUsedGB := models.BytesToGB(m.node.DiskUsed)
 	diskTotalGB := models.BytesToGB(m.node.DiskTotal)
-	diskStyled := getDiskUsageStyle(m.node.DiskUsed, m.node.DiskTotal).Render(fmt.Sprintf("%.0fGB/%.0fGB", diskUsedGB, diskTotalGB))
-
-	fmt.Fprintf(&boxContent, "CPU: %s | Memory: %s | Disk: %s\n\n",
-		cpuStyled,
-		memStyled,
-		diskStyled)
+	diskPercent := float64(m.node.DiskUsed) / float64(m.node.DiskTotal)
+	diskBar := m.diskProgress.ViewAs(diskPercent)
+	diskValue := getDiskUsageStyle(m.node.DiskUsed, m.node.DiskTotal).Render(fmt.Sprintf("%.0fGB/%.0fGB", diskUsedGB, diskTotalGB))
+	fmt.Fprintf(&boxContent, "Disk:   %s %s\n", diskBar, diskValue)
 
 	// VM list with cursor
 	boxContent.WriteString(sectionHeaderStyle.Render("Virtual Machines"))
