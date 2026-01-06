@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/talonlikeaclaw/godash/internal/models"
 )
@@ -13,16 +14,32 @@ type Model struct {
 	cursor      int    // which VM or container is selected
 	currentView string // current view (dashboard or detail)
 	quitting    bool
+
+	cpuProgress  progress.Model
+	memProgress  progress.Model
+	diskProgress progress.Model
 }
 
 // NewModel creates a new model with fake data
 func NewModel() Model {
+	cpuProg := progress.New(progress.WithGradient(string(tokyoNightGreen), string(tokyoNightRed)))
+	cpuProg.Width = 50
+
+	memProg := progress.New(progress.WithGradient(string(tokyoNightGreen), string(tokyoNightRed)))
+	memProg.Width = 50
+
+	diskProg := progress.New(progress.WithGradient(string(tokyoNightGreen), string(tokyoNightRed)))
+	diskProg.Width = 50
+
 	return Model{
-		node:        models.GetFakeNode(),
-		vms:         models.GetFakeVMs(),
-		containers:  models.GetFakeContainers(),
-		currentView: ViewDashboard,
-		cursor:      0,
+		node:         models.GetFakeNode(),
+		vms:          models.GetFakeVMs(),
+		containers:   models.GetFakeContainers(),
+		currentView:  ViewDashboard,
+		cursor:       0,
+		cpuProgress:  cpuProg,
+		memProgress:  memProg,
+		diskProgress: diskProg,
 	}
 }
 
