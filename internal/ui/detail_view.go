@@ -4,12 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/progress"
 	"github.com/talonlikeaclaw/godash/internal/models"
 )
 
 // renderDetailView renders the detail view for a selected VM or container
 func (m Model) renderDetailView() string {
 	var b strings.Builder
+	cpuProg := progress.New(progress.WithGradient(string(tokyoNightGreen), string(tokyoNightRed)))
+	cpuProg.Width = 20
+
+	memProg := progress.New(progress.WithGradient(string(tokyoNightGreen), string(tokyoNightRed)))
+	memProg.Width = 20
 
 	if m.cursor < len(m.vms) {
 		// Rendering VM detail
@@ -27,29 +33,34 @@ func (m Model) renderDetailView() string {
 		idLabel := nodeHeaderStyle.Render("ID:")
 		nameLabel := nodeHeaderStyle.Render("Name:")
 		fmt.Fprintf(&detailContent, "%s %d\n", idLabel, vm.ID)
-		fmt.Fprintf(&detailContent, "%s %s\n\n", nameLabel, vm.Name)
+		fmt.Fprintf(&detailContent, "%s %s\n", nameLabel, vm.Name)
 
 		// Status
 		statusLabel := sectionHeaderStyle.Render("Status:")
 		statusStyled := getStatusStyle(vm.Status).Render(vm.Status)
-		fmt.Fprintf(&detailContent, "%s %s\n\n", statusLabel, statusStyled)
-
-		// Resource usage
-		detailContent.WriteString(sectionHeaderStyle.Render("Resource Usage"))
-		detailContent.WriteString("\n")
-
-		cpuStyled := getCPUUsageStyle(vm.CPU).Render(fmt.Sprintf("%.1f%%", vm.CPU))
-		memUsed := models.BytesToGB(vm.MemUsed)
-		memTotal := models.BytesToGB(vm.MemTotal)
-		memStyled := getMemoryUsageStyle(vm.MemUsed, vm.MemTotal).Render(fmt.Sprintf("%.1fGB/%.1fGB", memUsed, memTotal))
-		memPercent := (float64(vm.MemUsed) / float64(vm.MemTotal)) * 100.0
-
-		fmt.Fprintf(&detailContent, "CPU:    %s\n", cpuStyled)
-		fmt.Fprintf(&detailContent, "Memory: %s (%.1f%%)\n\n", memStyled, memPercent)
+		fmt.Fprintf(&detailContent, "%s %s", statusLabel, statusStyled)
 
 		// Uptime
 		uptimeLabel := sectionHeaderStyle.Render("Uptime:")
-		fmt.Fprintf(&detailContent, "%s %s\n", uptimeLabel, models.FormatUptime(vm.Uptime))
+		fmt.Fprintf(&detailContent, "%s %s", uptimeLabel, models.FormatUptime(vm.Uptime))
+
+		// Resource usage
+		detailContent.WriteString(sectionHeaderStyle.Render("Resource Usage:\n"))
+		detailContent.WriteString("\n")
+
+		// CPU with progress bar
+		cpuPercent := vm.CPU / 100.0
+		cpuBar := cpuProg.ViewAs(cpuPercent)
+		cpuStyled := getCPUUsageStyle(vm.CPU).Render(fmt.Sprintf("%.1f%%", vm.CPU))
+		fmt.Fprintf(&detailContent, "CPU:    %s %s\n", cpuBar, cpuStyled)
+
+		// Memory with progress bar
+		memUsed := models.BytesToGB(vm.MemUsed)
+		memTotal := models.BytesToGB(vm.MemTotal)
+		memPercent := (float64(vm.MemUsed) / float64(vm.MemTotal)) * 100.0
+		memBar := memProg.ViewAs(memPercent / 100.0)
+		memStyled := getMemoryUsageStyle(vm.MemUsed, vm.MemTotal).Render(fmt.Sprintf("%.1fGB/%.1fGB", memUsed, memTotal))
+		fmt.Fprintf(&detailContent, "Memory: %s %s\n", memBar, memStyled)
 
 		// Wrap in box
 		b.WriteString(nodeBoxStyle.Render(detailContent.String()))
@@ -71,29 +82,34 @@ func (m Model) renderDetailView() string {
 		idLabel := nodeHeaderStyle.Render("ID:")
 		nameLabel := nodeHeaderStyle.Render("Name:")
 		fmt.Fprintf(&detailContent, "%s %d\n", idLabel, container.ID)
-		fmt.Fprintf(&detailContent, "%s %s\n\n", nameLabel, container.Name)
+		fmt.Fprintf(&detailContent, "%s %s\n", nameLabel, container.Name)
 
 		// Status
 		statusLabel := sectionHeaderStyle.Render("Status:")
 		statusStyled := getStatusStyle(container.Status).Render(container.Status)
-		fmt.Fprintf(&detailContent, "%s %s\n\n", statusLabel, statusStyled)
-
-		// Resource usage
-		detailContent.WriteString(sectionHeaderStyle.Render("Resource Usage"))
-		detailContent.WriteString("\n")
-
-		cpuStyled := getCPUUsageStyle(container.CPU).Render(fmt.Sprintf("%.1f%%", container.CPU))
-		memUsed := models.BytesToGB(container.MemUsed)
-		memTotal := models.BytesToGB(container.MemTotal)
-		memStyled := getMemoryUsageStyle(container.MemUsed, container.MemTotal).Render(fmt.Sprintf("%.1fGB/%.1fGB", memUsed, memTotal))
-		memPercent := (float64(container.MemUsed) / float64(container.MemTotal)) * 100.0
-
-		fmt.Fprintf(&detailContent, "CPU:    %s\n", cpuStyled)
-		fmt.Fprintf(&detailContent, "Memory: %s (%.1f%%)\n\n", memStyled, memPercent)
+		fmt.Fprintf(&detailContent, "%s %s", statusLabel, statusStyled)
 
 		// Uptime
 		uptimeLabel := sectionHeaderStyle.Render("Uptime:")
-		fmt.Fprintf(&detailContent, "%s %s\n", uptimeLabel, models.FormatUptime(container.Uptime))
+		fmt.Fprintf(&detailContent, "%s %s", uptimeLabel, models.FormatUptime(container.Uptime))
+
+		// Resource usage
+		detailContent.WriteString(sectionHeaderStyle.Render("Resource Usage:\n"))
+		detailContent.WriteString("\n")
+
+		// CPU with progress bar
+		cpuPercent := container.CPU / 100.0
+		cpuBar := cpuProg.ViewAs(cpuPercent)
+		cpuStyled := getCPUUsageStyle(container.CPU).Render(fmt.Sprintf("%.1f%%", container.CPU))
+		fmt.Fprintf(&detailContent, "CPU:    %s %s\n", cpuBar, cpuStyled)
+
+		// Memory with progress bar
+		memUsed := models.BytesToGB(container.MemUsed)
+		memTotal := models.BytesToGB(container.MemTotal)
+		memPercent := (float64(container.MemUsed) / float64(container.MemTotal)) * 100.0
+		memBar := memProg.ViewAs(memPercent / 100.0)
+		memStyled := getMemoryUsageStyle(container.MemUsed, container.MemTotal).Render(fmt.Sprintf("%.1fGB/%.1fGB", memUsed, memTotal))
+		fmt.Fprintf(&detailContent, "Memory: %s %s\n\n", memBar, memStyled)
 
 		// Wrap in box
 		b.WriteString(nodeBoxStyle.Render(detailContent.String()))
