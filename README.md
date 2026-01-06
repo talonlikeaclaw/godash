@@ -13,6 +13,12 @@ A terminal-based dashboard for monitoring and managing Proxmox VMs, containers, 
 - Intelligent update management with changelog awareness
 - Interactive TUI with keyboard navigation
 
+## Screenshots
+
+![Dashboard](./assets/dashboard.png)
+
+<img src="./assets/vm.png" width="370" /> &nbsp;&nbsp;&nbsp; <img src="./assets/container.png" width="370" />
+
 ## Development Setup
 
 ### Prerequisites
