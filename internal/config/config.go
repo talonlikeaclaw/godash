@@ -20,3 +20,19 @@ func Load(path string) (*Config, error) {
 
 	return &config, nil
 }
+
+type Config struct {
+	Proxmox ProxmoxConfig `yaml:"proxmox"`
+	Refresh RefreshConfig `yaml:"refresh"`
+}
+
+type ProxmoxConfig struct {
+	Host  string `yaml:"host"`
+	Port  int    `yaml:"port"`
+	Token string `yaml:"token"`
+	Node  string `yaml:"node"`
+	SSL   bool   `yaml:"verify_ssl"`
+}
+type RefreshConfig struct {
+	NodeStats int `yaml:"node_stats"`
+}
