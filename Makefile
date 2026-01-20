@@ -1,8 +1,11 @@
 .PHONY: build run test clean lint help
 
 # Build the binary
-build:
-	go build -o bin/godash cmd/godash/main.go
+build-mac:
+	GOOS=darwin GOARCH=arm64 go build -o bin/godash cmd/godash/main.go
+
+build-linux:
+	GOOS=linux GOARCH=amd64 go build -o bin/godash cmd/godash/main.go
 
 # Run the application
 run:
