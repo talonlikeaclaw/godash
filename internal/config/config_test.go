@@ -34,3 +34,10 @@ func TestLoad(t *testing.T) {
 		t.Errorf("NodeStats = %d, want %d", config.Refresh.NodeStats, 10)
 	}
 }
+
+func TestLoadFileNotFound(t *testing.T) {
+	_, err := Load("nonexistant.yaml")
+	if err == nil {
+		t.Error("expected error for missing file, got nil")
+	}
+}
