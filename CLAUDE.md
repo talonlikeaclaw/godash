@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Goal:** Build a TUI (Terminal User Interface) using Bubbletea to monitor Proxmox homelab infrastructure (VMs, containers, and system resources) in real-time.
 
-**Current Phase:** Phase 1 - Building the basic UI with fake data before integrating real Proxmox API calls.
+**Current Phase:** Phase 2 - Integrating real Proxmox API client.
 
 **Tech Stack:**
 - Go 1.25.5
@@ -83,8 +83,8 @@ godash/
 │   ├── models/          # Data models (Node, VM, Container) + fake data generators
 │   ├── ui/              # Bubbletea UI components (dashboard.go)
 │   ├── app/             # Application state (not implemented yet)
-│   ├── config/          # Config loading (not implemented yet)
-│   └── proxmox/         # Proxmox API client (future)
+│   ├── config/          # Config loading from YAML
+│   └── proxmox/         # Proxmox API client (in progress)
 ├── configs/             # Example YAML config (config.example.yaml)
 └── scripts/             # Dev environment setup scripts
 ```
@@ -94,6 +94,7 @@ godash/
 - `internal/models/models.go` - Core data structures (Node, VM, Container)
 - `internal/models/fake_data.go` - Fake data generators for Phase 1 testing
 - `internal/ui/dashboard.go` - Main dashboard UI component
+- `internal/config/config.go` - YAML config loading and structs
 - `configs/config.example.yaml` - Example configuration file
 
 ### Bubble Tea Pattern (Elm Architecture)
@@ -136,7 +137,7 @@ Future phases will replace these with real Proxmox API calls.
 
 ## Current State
 
-**What works:**
+**What works (Phase 1 complete):**
 - Dashboard TUI displaying node info (CPU, Memory, Disk usage)
 - VM and LXC container lists with unified cursor navigation
 - Keyboard navigation (up/down or j/k, with wrapping)
@@ -144,14 +145,18 @@ Future phases will replace these with real Proxmox API calls.
 - Project structure and build system
 - Fake data generators for development without Proxmox connection
 - BytesToGB helper for memory/disk display formatting
+- Lipgloss styling throughout the UI
+- Multiple views (dashboard, VM detail, container detail)
+- Config loading from YAML with unit tests
 
-**What's next (Phase 1 continuation):**
-- Add styling with lipgloss (in progress)
-- Add multiple views (dashboard → VM detail view)
+**What's next (Phase 2):**
+- Build Proxmox API client (`internal/proxmox/client.go`)
+- Implement GetNodeStatus, GetVMs, GetContainers methods
+- Wire client into Bubble Tea with periodic refresh using tea.Tick
+- Replace fake data with real Proxmox API data
 
 ## Future Phases
 
-- **Phase 2**: Integrate real Proxmox API client
 - **Phase 3**: Add Docker integration via SSH to VMs
 - **Phase 4**: Smart update checking with GitHub API integration for changelog awareness
 
@@ -170,6 +175,5 @@ When working on this project:
 1. **Follow Elm Architecture**: All state changes through Update(), pure View() function
 2. **Idiomatic Go**: Use gofmt, follow Go naming conventions, keep it simple
 3. **Incremental Changes**: Make small steps, test often
-4. **UI First**: Focus on getting the UI working with fake data before integrating real APIs
-5. **No Premature Optimization**: Don't add features beyond what's requested
-6. **Test with Fake Data**: Use the fake data generators to develop and test UI components
+4. **Guidance Over Implementation**: Provide guidance and explanations; let the user implement the code themselves unless explicitly asked to write it
+5. **Write Unit Tests**: Add tests for new functionality, especially API client methods
