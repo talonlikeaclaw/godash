@@ -1,0 +1,11 @@
+# Proxmox Configuration
+proxmox:
+  host: "192.168.0.123"
+  port: 8005
+  token: "username@pam!token-name=your-token"
+  node: "pve"
+  verify_ssl: false
+
+# Refresh Intervals (seconds)
+refresh:
+  node_stats: 10
