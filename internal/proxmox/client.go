@@ -80,6 +80,43 @@ func (c *Client) get(path string) ([]byte, error) {
 	return body, nil
 }
 
+type vmResponse struct {
+	VMID   int     `json:"vmid"`
+	Name   string  `json:"name"`
+	Status string  `json:"status"`
+	CPU    float64 `json:"cpu"`
+	Mem    int64   `json:"mem"`
+	MaxMem int64   `json:"maxmem"`
+	Uptime int64   `json:"uptime"`
+}
+
+// GetVMs returns all QEMU virtual machines on the configured node.
+func (c *Client) GetVMs() ([]models.VM, error) {
+	body, err := c.get("/nodes/" + c.node + "/qemu")
+	if err != nil {
+		return nil, err
+	}
+
+	var resp apiResponse[[]vmResponse]
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("parse vms: %w", err)
+	}
+
+	vms := make([]models.VM, len(resp.Data))
+	for i, v := range resp.Data {
+		vms[i] = models.VM{
+			ID:       v.VMID,
+			Name:     v.Name,
+			Status:   v.Status,
+			CPU:      v.CPU * 100,
+			MemUsed:  v.Mem,
+			MemTotal: v.MaxMem,
+			Uptime:   v.Uptime,
+		}
+	}
+	return vms, nil
+}
+
 // GetNodeStatus fetches CPU, memory, disk, and uptime for the configured node.
 func (c *Client) GetNodeStatus() (models.Node, error) {
 	body, err := c.get("/nodes/" + c.node + "/status")

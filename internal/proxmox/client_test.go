@@ -33,6 +33,64 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestGetVMs(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api2/json/nodes/pve/qemu" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{
+			"data": [
+				{
+					"vmid": 100,
+					"name": "ubuntu-private",
+					"status": "running",
+					"cpu": 0.024,
+					"mem": 2147483648,
+					"maxmem": 8589934592,
+					"uptime": 3600
+				}
+			]
+		}`)
+	}
+
+	srv, cfg := testServer(handler)
+	defer srv.Close()
+
+	c := New(cfg)
+	c.baseURL = srv.URL + "/api2/json"
+
+	vms, err := c.GetVMs()
+	if err != nil {
+		t.Fatalf("GetVMs() error: %v", err)
+	}
+	if len(vms) != 1 {
+		t.Fatalf("expected 1 VM, got %d", len(vms))
+	}
+	vm := vms[0]
+	if vm.ID != 100 {
+		t.Errorf("ID: got %d, want 100", vm.ID)
+	}
+	if vm.Name != "ubuntu-private" {
+		t.Errorf("Name: got %s, want ubuntu-private", vm.Name)
+	}
+	if vm.Status != "running" {
+		t.Errorf("Status: got %s, want running", vm.Status)
+	}
+	if vm.CPU != 2.4 {
+		t.Errorf("CPU: got %.2f, want 2.4", vm.CPU)
+	}
+	if vm.MemUsed != 2147483648 {
+		t.Errorf("MemUsed: got %d, want 2147483648", vm.MemUsed)
+	}
+	if vm.MemTotal != 8589934592 {
+		t.Errorf("MemTotal: got %d, want 8589934592", vm.MemTotal)
+	}
+	if vm.Uptime != 3600 {
+		t.Errorf("Uptime: got %d, want 3600", vm.Uptime)
+	}
+}
+
 func TestGetNodeStatus(t *testing.T) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api2/json/nodes/pve/status" {
