@@ -91,6 +91,64 @@ func TestGetVMs(t *testing.T) {
 	}
 }
 
+func TestGetContainers(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api2/json/nodes/pve/lxc" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{
+			"data": [
+				{
+					"vmid": 101,
+					"name": "adguard",
+					"status": "running",
+					"cpu": 0.002,
+					"mem": 536870912,
+					"maxmem": 1073741824,
+					"uptime": 7200
+				}
+			]
+		}`)
+	}
+
+	srv, cfg := testServer(handler)
+	defer srv.Close()
+
+	c := New(cfg)
+	c.baseURL = srv.URL + "/api2/json"
+
+	containers, err := c.GetContainers()
+	if err != nil {
+		t.Fatalf("GetContainers() error: %v", err)
+	}
+	if len(containers) != 1 {
+		t.Fatalf("expected 1 container, got %d", len(containers))
+	}
+	ct := containers[0]
+	if ct.ID != 101 {
+		t.Errorf("ID: got %d, want 101", ct.ID)
+	}
+	if ct.Name != "adguard" {
+		t.Errorf("Name: got %s, want adguard", ct.Name)
+	}
+	if ct.Status != "running" {
+		t.Errorf("Status: got %s, want running", ct.Status)
+	}
+	if ct.CPU != 0.2 {
+		t.Errorf("CPU: got %.4f, want 0.2", ct.CPU)
+	}
+	if ct.MemUsed != 536870912 {
+		t.Errorf("MemUsed: got %d, want 536870912", ct.MemUsed)
+	}
+	if ct.MemTotal != 1073741824 {
+		t.Errorf("MemTotal: got %d, want 1073741824", ct.MemTotal)
+	}
+	if ct.Uptime != 7200 {
+		t.Errorf("Uptime: got %d, want 7200", ct.Uptime)
+	}
+}
+
 func TestGetNodeStatus(t *testing.T) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api2/json/nodes/pve/status" {

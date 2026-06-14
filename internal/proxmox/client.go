@@ -117,6 +117,43 @@ func (c *Client) GetVMs() ([]models.VM, error) {
 	return vms, nil
 }
 
+type containerResponse struct {
+	VMID   int     `json:"vmid"`
+	Name   string  `json:"name"`
+	Status string  `json:"status"`
+	CPU    float64 `json:"cpu"`
+	Mem    int64   `json:"mem"`
+	MaxMem int64   `json:"maxmem"`
+	Uptime int64   `json:"uptime"`
+}
+
+// GetContainers returns all LXC containers on the configured node.
+func (c *Client) GetContainers() ([]models.Container, error) {
+	body, err := c.get("/nodes/" + c.node + "/lxc")
+	if err != nil {
+		return nil, err
+	}
+
+	var resp apiResponse[[]containerResponse]
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("parse containers: %w", err)
+	}
+
+	containers := make([]models.Container, len(resp.Data))
+	for i, ct := range resp.Data {
+		containers[i] = models.Container{
+			ID:       ct.VMID,
+			Name:     ct.Name,
+			Status:   ct.Status,
+			CPU:      ct.CPU * 100,
+			MemUsed:  ct.Mem,
+			MemTotal: ct.MaxMem,
+			Uptime:   ct.Uptime,
+		}
+	}
+	return containers, nil
+}
+
 // GetNodeStatus fetches CPU, memory, disk, and uptime for the configured node.
 func (c *Client) GetNodeStatus() (models.Node, error) {
 	body, err := c.get("/nodes/" + c.node + "/status")
