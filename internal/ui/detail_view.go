@@ -17,9 +17,22 @@ func (m Model) renderDetailView() string {
 	memProg := progress.New(progress.WithGradient(string(tokyoNightGreen), string(tokyoNightRed)))
 	memProg.Width = 20
 
-	if m.cursor < len(m.vms) {
-		// Rendering VM detail
-		vm := m.vms[m.cursor]
+	if m.selectedIsVM {
+		var vm models.VM
+		found := false
+		for _, v := range m.vms {
+			if v.ID == m.selectedID {
+				vm = v
+				found = true
+				break
+			}
+		}
+		if !found {
+			b.WriteString(criticalUsageStyle.Render("Selected VM no longer available."))
+			b.WriteString("\n")
+			b.WriteString(helpStyle.Render("Controls: q to go back | Esc to quit"))
+			return b.String()
+		}
 
 		// Title
 		title := fmt.Sprintf("Virtual Machine: %s", vm.Name)
@@ -67,8 +80,21 @@ func (m Model) renderDetailView() string {
 		b.WriteString("\n")
 
 	} else {
-		// Rendering Container detail
-		container := m.containers[m.cursor-len(m.vms)]
+		var container models.Container
+		found := false
+		for _, ct := range m.containers {
+			if ct.ID == m.selectedID {
+				container = ct
+				found = true
+				break
+			}
+		}
+		if !found {
+			b.WriteString(criticalUsageStyle.Render("Selected container no longer available."))
+			b.WriteString("\n")
+			b.WriteString(helpStyle.Render("Controls: q to go back | Esc to quit"))
+			return b.String()
+		}
 
 		// Title
 		title := fmt.Sprintf("LXC Container: %s", container.Name)

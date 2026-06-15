@@ -15,6 +15,12 @@ func (m Model) renderDashboardView() string {
 	b.WriteString(titleStyle.Render("Godash - Homelab Dashboard"))
 	b.WriteString("\n\n")
 
+	// Show API error if present
+	if m.lastErr != nil {
+		b.WriteString(criticalUsageStyle.Render(fmt.Sprintf("API error: %v", m.lastErr)))
+		b.WriteString("\n\n")
+	}
+
 	// Build content for the box
 	var boxContent strings.Builder
 

@@ -1,17 +1,24 @@
 # Godash
 
-A terminal-based dashboard for monitoring and managing Proxmox VMs, containers, and services.
+A terminal-based dashboard for monitoring Proxmox homelab infrastructure, VMs, LXC containers, and node resources; in real-time.
 
-## Status
+## Features
 
-**In Development** - Phase 1: UI Foundation
+**Working now:**
 
-## Features (Planned)
+- Live Proxmox node stats (CPU, memory, disk) with progress bars
+- VM and LXC container list with status, CPU, memory, uptime
+- Detail view for selected VM or container
+- Periodic auto-refresh (configurable interval)
+- Tokyo Night colour theme via Lipgloss
+- Keyboard navigation (j/k or ↑/↓, Enter, q, Esc)
+- Graceful fallback to fake data when no config present
 
-- Real-time Proxmox node and VM monitoring
-- Docker container visibility across VMs
-- Intelligent update management with changelog awareness
-- Interactive TUI with keyboard navigation
+**Coming soon:**
+
+- Start/stop/restart VMs and LXCs from the TUI
+- SSH into LXC containers
+- Configurable list sorting
 
 ## Screenshots
 
@@ -19,55 +26,73 @@ A terminal-based dashboard for monitoring and managing Proxmox VMs, containers, 
 
 <img src="./assets/vm.png" width="370" /> &nbsp;&nbsp;&nbsp; <img src="./assets/container.png" width="370" />
 
+## Configuration
+
+Create `~/.config/godash/config.yaml`:
+
+```yaml
+proxmox:
+  host: "192.168.0.100"
+  port: 8006
+  token: "root@pam!tokenid=<uuid>"
+  node: "your-node-name" # check via GET /api2/json/nodes
+  verify_ssl: false # false for self-signed certs
+
+refresh:
+  node_stats: 10 # seconds between refreshes
+```
+
+Create a Proxmox API token at: Datacenter > Permissions > API Tokens.
+
+## Keyboard Controls
+
+| Key              | Action            |
+| ---------------- | ----------------- |
+| `j` / `↓`        | Move down         |
+| `k` / `↑`        | Move up           |
+| `Enter`          | Open detail view  |
+| `q`              | Back to dashboard |
+| `Esc` / `Ctrl+C` | Quit              |
+
 ## Development Setup
 
 ### Prerequisites
 
-- [distrobox](https://github.com/89luca89/distrobox) installed
-- podman or docker as container runtime
+- [distrobox](https://github.com/89luca89/distrobox)
+- podman or docker
 
 ### Quick Start
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/godash.git
+git clone https://github.com/talonlikeaclaw/godash.git
 cd godash
 
-# Set up development environment
 ./scripts/setup-dev-env.sh
-
-# Enter the container
 distrobox enter godash-dev
-
-# Run the project
 cd ~/projects/godash
-go run cmd/godash/main.go
+
+make run
 ```
 
-### Custom Container Name
-
-If you already have a container named `godash-dev`:
-```bash
-./scripts/setup-dev-env.sh my-custom-name
-distrobox enter my-custom-name
-```
-
-## Building
+### Common Commands
 
 ```bash
-go build -o bin/godash cmd/godash/main.go
+make run        # Run app
+make build      # Build binary → bin/godash
+make test       # Run all tests
+make coverage   # Test coverage report
+make lint       # Run linter
 ```
 
 ## Project Structure
 
 ```
 godash/
-├── cmd/godash/         # Main application entry point
-├── internal/           # Private application code
-│   ├── app/            # Application state and coordination
-│   ├── config/         # Configuration management
-│   ├── models/         # Data models
-│   └── ui/             # TUI components
-├── configs/            # Configuration files
-├── scripts/            # Development scripts
-└── testdata/           # Test fixtures
+├── cmd/godash/          # Entry point
+├── internal/
+│   ├── proxmox/         # Proxmox API client
+│   ├── config/          # YAML config loading
+│   ├── models/          # Node, VM, Container structs + fake data
+│   └── ui/              # Bubble Tea TUI components
+└── configs/             # config.example.yaml
+```

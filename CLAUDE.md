@@ -1,12 +1,12 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code (claude.ai/code) when working in this repo.
 
 ## Project Overview
 
-**Goal:** Build a TUI (Terminal User Interface) using Bubbletea to monitor Proxmox homelab infrastructure (VMs, containers, and system resources) in real-time.
+**Goal:** Build TUI (Terminal User Interface) using Bubbletea to monitor Proxmox homelab infrastructure (VMs, containers, system resources) in real-time.
 
-**Current Phase:** Phase 1 - Building the basic UI with fake data before integrating real Proxmox API calls.
+**Current Phase:** Phase 3 - Proxmox control actions (start/stop/restart VMs and LXCs).
 
 **Tech Stack:**
 - Go 1.25.5
@@ -17,7 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Environment
 
-**All development happens in distrobox container.** The container is named `godash-dev` by default.
+**All development happens in distrobox container.** Container named `godash-dev` by default.
 
 ```bash
 # Set up development environment (first time)
@@ -81,95 +81,99 @@ godash/
 ├── cmd/godash/          # Main application entry point
 ├── internal/
 │   ├── models/          # Data models (Node, VM, Container) + fake data generators
-│   ├── ui/              # Bubbletea UI components (dashboard.go)
+│   ├── ui/              # Bubbletea UI components
 │   ├── app/             # Application state (not implemented yet)
-│   ├── config/          # Config loading (not implemented yet)
-│   └── proxmox/         # Proxmox API client (future)
+│   ├── config/          # Config loading from YAML
+│   └── proxmox/         # Proxmox API client
 ├── configs/             # Example YAML config (config.example.yaml)
 └── scripts/             # Dev environment setup scripts
 ```
 
 **Key Files:**
-- `cmd/godash/main.go` - Application entry point, initializes Bubble Tea program
+- `cmd/godash/main.go` - Entry point; loads config, creates proxmox client, falls back to fake data
 - `internal/models/models.go` - Core data structures (Node, VM, Container)
-- `internal/models/fake_data.go` - Fake data generators for Phase 1 testing
-- `internal/ui/dashboard.go` - Main dashboard UI component
+- `internal/models/fake_data.go` - Fake data generators for offline dev/testing
+- `internal/proxmox/client.go` - Proxmox HTTP client (auth, GetNodeStatus, GetVMs, GetContainers)
+- `internal/ui/model.go` - Bubble Tea model; dataRefreshMsg/tickMsg wiring, async refresh
+- `internal/ui/dashboard_view.go` - Dashboard rendering
+- `internal/ui/detail_view.go` - VM/container detail rendering (ID-based, not cursor-based)
+- `internal/config/config.go` - YAML config loading and structs
 - `configs/config.example.yaml` - Example configuration file
 
 ### Bubble Tea Pattern (Elm Architecture)
 
-The application follows the Elm Architecture pattern via Bubble Tea:
+App follows Elm Architecture via Bubble Tea:
 
-1. **Model** (`internal/ui/dashboard.go`): Holds all application state including:
-   - Node information
-   - VMs and containers lists
-   - UI state (cursor position, quit flag)
+1. **Model** (`internal/ui/model.go`): All app state — node, VMs, containers, cursor, selected item identity (`selectedID`/`selectedIsVM`), client, error state.
 
-2. **Init()**: Called once at startup to return initial commands
+2. **Init()**: Fires first `fetchData()` command on startup.
 
-3. **Update(msg tea.Msg)**: Handles all state changes based on messages:
-   - Keyboard events (q/Ctrl+C to quit, up/down or j/k for navigation)
-   - Future: view switching, data updates, API responses
-   - Returns updated model and optional command
+3. **Update(msg tea.Msg)**: All state changes:
+   - `dataRefreshMsg` — updates node/VM/container data, re-syncs cursor to tracked ID, schedules next tick
+   - `tickMsg` — fires next `fetchData()` command
+   - Keyboard events (navigation, view switching, quit)
 
-4. **View()**: Pure rendering function that returns a string representation of current state
+4. **View()**: Pure rendering — delegates to `renderDashboardView()` or `renderDetailView()`.
 
-5. **Messages**: Communication between components (keypresses, API responses, timers)
-
-6. **Commands**: Async operations that will eventually produce messages (API calls, timers, I/O)
+5. **Async refresh**: `fetchData()` returns command calling all three Proxmox API methods concurrently-safe (runs off main goroutine). `tea.Tick` drives periodic re-fetch.
 
 ### Data Flow
 
-Currently uses fake data generators in `internal/models/fake_data.go`:
-- `GetFakeNode()` - Returns fake Proxmox node data
-- `GetFakeVMs()` - Returns slice of fake VMs
-- `GetFakeContainers()` - Returns slice of fake containers
+```
+main.go → config.Load() → proxmox.New(cfg) → ui.NewModel(client, refreshSecs)
+    → Init() → fetchData() cmd
+    → [API calls] → dataRefreshMsg
+    → Update() → model updated → tickCmd()
+    → [N seconds] → tickMsg → fetchData() → ...
+```
 
-Future phases will replace these with real Proxmox API calls.
+Fallback: config missing → `ui.NewModelWithFakeData()` used (fake data generators in `internal/models/fake_data.go`).
 
 ### Key Design Patterns
 
-- **UI State Centralization**: All UI state lives in the `ui.Model` struct
-- **Message-Driven Updates**: State changes only occur via the Update() function responding to messages
-- **Separation of Concerns**: Models define data structures, UI handles presentation, cmd/ handles initialization
-- **Fake Data for Development**: `fake_data.go` provides realistic test data to develop UI without requiring Proxmox connection
+- **UI State Centralization**: All UI state in `ui.Model` struct
+- **Message-Driven Updates**: State changes only via Update() responding to messages
+- **Separation of Concerns**: Models define data, UI handles presentation, cmd/ handles init
+- **Fake Data for Development**: `fake_data.go` provides realistic test data without Proxmox connection
 
 ## Current State
 
-**What works:**
-- Dashboard TUI displaying node info (CPU, Memory, Disk usage)
-- VM and LXC container lists with unified cursor navigation
+**What works (Phases 1 & 2 complete):**
+- Dashboard TUI showing live Proxmox node info (CPU, Memory, Disk usage)
+- VM and LXC container lists with unified cursor navigation, sorted by ID
 - Keyboard navigation (up/down or j/k, with wrapping)
-- Quit functionality (press 'q' or Ctrl+C)
-- Project structure and build system
+- Quit (Ctrl+C or Esc; 'q' returns from detail view)
+- Detail view for selected VM or LXC (tracks item by ID — stable across refreshes)
+- Periodic async refresh via `tea.Tick` (interval from `config.refresh.node_stats`)
+- API errors displayed in red in dashboard (no silent failures)
+- Config from `~/.config/godash/config.yaml`; falls back to fake data with warning
 - Fake data generators for development without Proxmox connection
-- BytesToGB helper for memory/disk display formatting
+- Lipgloss Tokyo Night styling throughout
+- Unit tests for config, proxmox client, and UI model
 
-**What's next (Phase 1 continuation):**
-- Add styling with lipgloss (in progress)
-- Add multiple views (dashboard → VM detail view)
+**What's next (Phase 3):**
+- Add start/stop/restart actions for VMs and LXCs via Proxmox API
+- Keybindings in detail view with confirmation prompt for destructive actions
+- Explore SSH into LXC containers from TUI
 
 ## Future Phases
 
-- **Phase 2**: Integrate real Proxmox API client
-- **Phase 3**: Add Docker integration via SSH to VMs
+- **Phase 3**: Proxmox control actions (start/stop/restart VMs and LXCs)
 - **Phase 4**: Smart update checking with GitHub API integration for changelog awareness
+- **Backlog**: Configurable list sorting (by name, CPU, memory, status)
 
 ## Important Notes
 
-- **Fake Data**: Using anonymous/fake data in `fake_data.go`, not real homelab data
-- **Development Approach**: Building UI-first with fake data; APIs come later
-- **Go Practices**: Following idiomatic Go (gofmt, conventional naming, defer adding dependencies until needed)
+- **Fake Data**: Anonymous/fake data in `fake_data.go`, not real homelab data
+- **Development Approach**: UI-first with fake data; APIs come later
+- **Go Practices**: Idiomatic Go (gofmt, conventional naming, defer adding dependencies until needed)
 - **Branching Strategy**: Feature branches off main, merge when complete
-- **Dependencies**: Only add new dependencies when actually needed, not speculatively
+- **Dependencies**: Add only when actually needed, not speculatively
 
 ## Coding Guidelines
 
-When working on this project:
-
-1. **Follow Elm Architecture**: All state changes through Update(), pure View() function
-2. **Idiomatic Go**: Use gofmt, follow Go naming conventions, keep it simple
-3. **Incremental Changes**: Make small steps, test often
-4. **UI First**: Focus on getting the UI working with fake data before integrating real APIs
-5. **No Premature Optimization**: Don't add features beyond what's requested
-6. **Test with Fake Data**: Use the fake data generators to develop and test UI components
+1. **Follow Elm Architecture**: All state changes through Update(), pure View()
+2. **Idiomatic Go**: Use gofmt, Go naming conventions, keep simple
+3. **Incremental Changes**: Small steps, test often
+4. **Guidance Over Implementation**: Provide guidance; let user implement unless explicitly asked to write code
+5. **Write Unit Tests**: Add tests for new functionality, especially API client methods
