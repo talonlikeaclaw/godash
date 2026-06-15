@@ -59,3 +59,18 @@ func TestDetailViewTracksIDNotPosition(t *testing.T) {
 			firstVM.ID, updatedModel.vms[updatedModel.cursor].ID, updatedModel.cursor)
 	}
 }
+
+func TestUpdateHandlesDataRefreshMsgWithError(t *testing.T) {
+	m := NewModelWithFakeData()
+
+	msg := dataRefreshMsg{
+		err: fmt.Errorf("connection refused"),
+	}
+
+	updated, _ := m.Update(msg)
+	updatedModel := updated.(Model)
+
+	if updatedModel.lastErr == nil {
+		t.Error("expected lastErr to be set, got nil")
+	}
+}

@@ -29,6 +29,9 @@ type Model struct {
 	quitting    bool
 	lastErr     error
 
+	selectedID    int
+	selectedIsVM  bool
+
 	client      *proxmox.Client
 	refreshSecs int
 
@@ -119,6 +122,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.node = msg.node
 		m.vms = msg.vms
 		m.containers = msg.containers
+		// Re-sync cursor to the selected item on order change.
+		if m.selectedIsVM {
+			for i, vm := range m.vms {
+				if vm.ID == m.selectedID {
+					m.cursor = i
+					break
+				}
+			}
+		} else {
+			for i, ct := range m.containers {
+				if ct.ID == m.selectedID {
+					m.cursor = len(m.vms) + i
+					break
+				}
+			}
+		}
 		return m, m.tickCmd()
 
 	case tickMsg:
@@ -146,7 +165,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "enter":
-			if m.currentView == ViewDashboard {
+			if m.currentView == ViewDashboard && (len(m.vms) > 0 || len(m.containers) > 0) {
+				if m.cursor < len(m.vms) {
+					m.selectedID = m.vms[m.cursor].ID
+					m.selectedIsVM = true
+				} else {
+					m.selectedID = m.containers[m.cursor-len(m.vms)].ID
+					m.selectedIsVM = false
+				}
 				m.currentView = ViewDetail
 			}
 
