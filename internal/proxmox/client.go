@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 
 	"github.com/talonlikeaclaw/godash/internal/config"
 	"github.com/talonlikeaclaw/godash/internal/models"
@@ -114,6 +115,7 @@ func (c *Client) GetVMs() ([]models.VM, error) {
 			Uptime:   v.Uptime,
 		}
 	}
+	sort.Slice(vms, func(i, j int) bool { return vms[i].ID < vms[j].ID })
 	return vms, nil
 }
 
@@ -151,6 +153,7 @@ func (c *Client) GetContainers() ([]models.Container, error) {
 			Uptime:   ct.Uptime,
 		}
 	}
+	sort.Slice(containers, func(i, j int) bool { return containers[i].ID < containers[j].ID })
 	return containers, nil
 }
 
